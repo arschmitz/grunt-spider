@@ -37,17 +37,35 @@ grunt.initConfig({
 
 ### Options
 
-#### options.separator
+#### options.url
 Type: `String`
-Default value: `',  '`
+Default value: `'http://localhost'`
 
-A string value that is used to do something with whatever.
+A url on which to start the spider.
 
-#### options.punctuation
+#### options.ignore
 Type: `String`
-Default value: `'.'`
+Default value: `''`
 
-A string value that is used to do something else with whatever else.
+A string that will be used to create a regex for excluding urls from being spidered.
+
+#### options.script
+Type: `Boolean`
+Default value: `true`
+
+Check for script errors
+
+#### options.resource
+Type: `Boolean`
+Default value: `true`
+
+Check for resource load errors
+
+#### options.links
+Type: `Boolean`
+Default value: `true`
+
+Check for dead links 
 
 ### Usage Examples
 

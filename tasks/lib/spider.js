@@ -4,6 +4,7 @@
 			ignore = casper.cli.get( "ignore" ) || " ",
 			extensionBlacklist = casper.cli.get( "extensionBlacklist" ) || ".jpg|.gif|.png|.svg|.jpeg|.JPG|.JPEG|.js|.css|.zip",
 			links = [],
+			linkObject = {},
 			externalLinks = [],
 			errors = [],
 			current = 0,
@@ -11,7 +12,8 @@
 			notFound = [],
 			resources = [],
 			utils = require('utils'),
-			mouse = require("mouse").create(casper);
+			mouse = require("mouse").create(casper),
+			httpCodes = [ "400", "401", "403", "404", "301", "302", "303", "305", "306", "307", "308" ];
 
 		casper.options.viewportSize = {
 			width: 1024,
@@ -30,9 +32,25 @@
 		function checkExtensionBlacklist( link ) {
 			return new RegExp( extensionBlacklist ).test( link );
 		}
+		function deadLink( link, code ) {
+			var message = {
+				file: link,
+				code: code
+			};
+			notFound.push( message );
+			if( !linkObject[ link ] ) {
+				var redirect = [
+					"Redirected from...",
+					links[ current ],
+					"Which is linked from..."
+				];
+				linkObject[ link ] = redirect.concat( linkObject[ links[ current ] ] );
+			}
+			casper.echo( "file: " + link + " is " + code , "WARNING" );
+		}
 		function bindEvents(){
-			casper.on("page.error", function(msg, trace) {
-				if ( checkInternal( links[ current ] ) ) {
+			casper.on( "page.error", function(msg, trace) {
+				if ( checkInternal( this.getCurrentUrl() ) ) {
 					var message = {};
 					if( trace[0] !== undefined ) {
 						message = {
@@ -44,6 +62,7 @@
 						};
 						this.echo( message.msg, "ERROR" );
 						this.echo( message.file, "WARNING" );
+						this.echo( message.url, "WARNING" );
 						this.echo( message.line, "WARNING" );
 						this.echo( message.functionCall, "WARNING" );
 					} else {
@@ -63,16 +82,11 @@
 			casper.on( "page.resource.recieved", function( response ){
 				console.log( response );
 			});
-
-			// Check the status code make sure its not an error code
-			casper.on('http.status.404', function( resource ) {
-				var message = {
-					url: resource.url,
-					msg: links[ current - 1 ] + ' is 404'
-				};
-				notFound.push( message );
-				this.echo( "file: " + resource.url + " is 404 on " +
-					links[ current - 1 ], "WARNING" );
+			httpCodes.forEach(function( value ){
+				// Check the status code make sure its not an error code
+				casper.on('http.status.' + value, function( resource ) {
+					deadLink( resource.url, value );
+				});
 			});
 
 			// Check for resource errors on internal pages
@@ -100,9 +114,9 @@
 			casper.removeAllListeners( "resource.error" );
 			casper.removeAllListeners( "error" );
 		}
-		function checkPage( i, test ){
-			current = i;
+		function checkPage( i ){
 			if( !checkIgnore( links[ i ] ) && links[ i ] !== links[ i - 1 ] ) {
+				current = i;
 				casper.open( links[ i ] ).then(function( response ){
 					var that = this;
 					function findLinks() {
@@ -119,13 +133,17 @@
 
 						if( newLinks && newLinks.length > 0 ) {
 							newLinks.forEach(function( value, index ){
+								if( !linkObject[ value ] ) {
+									linkObject[ value ] = [];
+								}
+								linkObject[ value ].push( links[ i ] );
 								if( links.indexOf( value ) === -1 ){
 									links.splice( i + 1, 0, value );
 								}
 							});
 						}
 						if ( i < links.length - 1 ) {
-							checkPage( i + 1, test );
+							checkPage( i + 1 );
 						}
 					}
 					if( checkInternal( links[ i ] ) ){
@@ -141,18 +159,18 @@
 					} else {
 						console.log( "External Page: " + links[ i ] );
 						if ( i < links.length - 1 ) {
-							checkPage( i + 1, test );
+							checkPage( i + 1 );
 						}
 					}
 				});
 			} else if ( i < links.length - 1 ) {
-				checkPage( i + 1, test );
+				checkPage( i + 1 );
 			}
 		}
 		casper.test.begin("Go Go Spidey Crawl!", function suite( test ){
 			casper.start( links[0],function(){
 				bindEvents();
-				checkPage( 0, test );
+				checkPage( 0 );
 			});
 			casper.run(function(){
 				test.done();
@@ -178,16 +196,27 @@
 				test.done();
 			});
 		});
-		casper.test.begin( "There are no 404 links", 1, function suite( test ) {
+		casper.test.begin( "There are no dead links", 1, function suite( test ) {
 			casper.run(function(){
 				if (notFound.length > 0) {
-					this.echo(notFound.length + ' 404 links found', "WARNING");
-					var that = this;
+					this.echo(notFound.length + ' unique dead links found', "WARNING");
+					var that = this,
+						count = 0;
 					notFound.forEach( function( value, index ){
-						that.echo( value.url + " on " + value.msg );
+						that.echo( value.file + " is " + value.code + " on ...", "WARNING" );
+						var currentCount = 0;
+
+						count += linkObject[ value.file ].length;
+						linkObject[ value.file ].some( function( page ){
+							currentCount++;
+							that.echo( page.substring( 0, 100 ), "DEBUG" );
+							if ( currentCount > 9 ) {
+								return true;
+							}
+						});
 					});
+					this.echo( count + " Total Dead Links", "WARNING" );
 				} else {
-					this.echo( "ignore count: " + ignorecount, "WARNING" );
 					this.echo(notFound.length + " 404's found", "INFO");
 				}
 				test.assert( notFound.length === 0, "No 404's found" );

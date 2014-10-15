@@ -20,10 +20,10 @@ module.exports = function(grunt) {
 		var casperOptions = {},
 			options = this.options({
 			url: "http://localhost",
-			ignore: [],
+			ignore: "",
 			script: true,
 			resource: true,
-			"404": true,
+			links: true,
 			casper : {
 				test: true,
 				verbose : true,

@@ -29,13 +29,14 @@ module.exports = function(grunt) {
 		spider: {
 			"dev" : {
 				options: {
-					url:  "http://jquery.com/",
-					ignore: "blog|themeroller"
+					url:  "http://jquery-ui.10.0.1.29.xip.io/demos/",
+					ignore: ""
 				}
 			},
 			"stage" : {
 				options: {
-					url:  "http://stage.api.jqueryui.com/"
+					url:  "http://stage.jqueryui.com/",
+					ignore: "broken|trash"
 				}
 			},
 			"production" : {
