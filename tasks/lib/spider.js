@@ -13,7 +13,7 @@
 			resources = [],
 			utils = require('utils'),
 			mouse = require("mouse").create(casper),
-			httpCodes = [ "400", "401", "403", "404", "301", "302", "303", "305", "306", "307", "308" ];
+			httpCodes = [ "400", "401", "403", "404", "301", "303", "305", "306", "308" ];
 
 		casper.options.viewportSize = {
 			width: 1024,
