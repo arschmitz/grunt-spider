@@ -107,13 +107,6 @@
 				this.die('Crawl stopped because of errors.');
 			});
 		}
-		function unbindEvents() {
-			casper.removeAllListeners( "page.error" );
-			casper.removeAllListeners( "http.status.404" );
-			casper.removeAllListeners( "page.resource.timeout" );
-			casper.removeAllListeners( "resource.error" );
-			casper.removeAllListeners( "error" );
-		}
 		function checkPage( i ){
 			if( !checkIgnore( links[ i ] ) && links[ i ] !== links[ i - 1 ] ) {
 				current = i;
