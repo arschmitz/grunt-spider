@@ -15,7 +15,6 @@ module.exports = function(grunt) {
 		var spider = require( "spider.js" ),
 			done = this.async();
 
-		console.log( this.options() )
 		spider( this.options(), done );
 	});
 
