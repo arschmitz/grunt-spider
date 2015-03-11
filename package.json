@@ -1,7 +1,7 @@
 {
   "name": "grunt-spider",
   "description": "A tool to spider a website and check for any broken links resources load errors or script errors",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "homepage": "https://github.com/arschmitz/grunt-spider",
   "author": {
     "name": "Alexander Schmitz",
