@@ -2,7 +2,7 @@
  * grunt-spider
  * https://github.com/arschmitz/grunt-spider
  *
- * Copyright (c) 2014 Alexander Schmitz
+ * Copyright (c) 2014-2015 Alexander Schmitz
  * Licensed under the MIT license.
  */
 
